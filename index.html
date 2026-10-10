@@ -17,7 +17,7 @@
   Single file. No external requests. Opens from file:// with no network.
 
   NOT A DEPLOYMENT. Before this goes live:
-   - The enquiry form has NO backend. See the POST comment on each <form>.
+   - Enquiry form sends via Web3Forms once WEB3FORMS_KEY is set (script at the foot).
    - Review attributions need real first names from the Google profile
      (marked [First name] in the markup below).
    - Photo-to-vehicle mapping is a BEST GUESS and needs Helen to confirm.
@@ -285,8 +285,6 @@
       </div>
 
       <div class="hero-form-wrap" id="enquiry">
-        <!-- MOCKUP: no backend wired. On the live site this form POSTs the enquiry.
-     See the marked block in the <script> at the foot of the page. -->
 <form class="enquiry form-card" id="form-a" novalidate>
           <h2>Is your date free?</h2>
           <p class="sub">Six short questions. Helen reads these herself and replies personally.</p>
@@ -345,6 +343,7 @@
                       placeholder="Two cars, a second trip for the bridesmaids, a car you have your eye on&hellip;"></textarea>
           </div>
 
+          <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none">
           <button type="submit" class="btn">Send my date to Helen</button>
           <p class="form-foot">Prefer to talk? <a href="tel:+447800787225">07800 787225</a>.</p>
         </form>
@@ -532,8 +531,6 @@
   <!-- ================= SECOND FORM ================= -->
   <section class="band" id="enquiry-2">
     <div class="wrap" style="max-width:660px;">
-      <!-- MOCKUP: no backend wired. On the live site this form POSTs the enquiry.
-     See the marked block in the <script> at the foot of the page. -->
 <form class="enquiry form-card" id="form-b" novalidate>
           <h2>Seen a vehicle you like?</h2>
           <p class="sub">Send us the date and Helen will check it against the diary.</p>
@@ -608,6 +605,7 @@
                       placeholder="Two cars, a second trip for the bridesmaids, a car you have your eye on&hellip;"></textarea>
           </div>
 
+          <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none">
           <button type="submit" class="btn">Send my date to Helen</button>
           <p class="form-foot">Prefer to talk? <a href="tel:+447800787225">07800 787225</a>.</p>
         </form>
@@ -727,15 +725,76 @@
       }
       summary.classList.remove('on');
 
-      // ------------------------------------------------------------------
-      // MOCKUP ONLY. On the live site this is where the enquiry is sent:
-      //   POST /enquiry   (or the booking platform's inbound webhook)
-      //   body: wedding date, collection postcode, venue, party size, car of interest, name,
-      //         contact, notes, plus a timestamp and the page URL.
-      // The live build must also send the acknowledgement email/SMS to the
-      // couple and the alert to Helen's phone. Nothing is sent from here.
-      // ------------------------------------------------------------------
+      if (form.dataset.sending) { return; }
+      var button = form.querySelector('button[type="submit"]');
+      var buttonText = button.textContent;
+      form.dataset.sending = '1';
+      button.disabled = true;
+      button.textContent = 'Sending…';
 
+      sendEnquiry(form).then(function () {
+        showThanks(form);
+      }, function () {
+        delete form.dataset.sending;
+        button.disabled = false;
+        button.textContent = buttonText;
+        summary.innerHTML = 'Sorry, that didn’t send. Please ring Helen on ' +
+          '<a href="tel:+447800787225">07800 787225</a> or email ' +
+          '<a href="mailto:rtyson56@btinternet.com">rtyson56@btinternet.com</a>.';
+        summary.classList.add('on');
+      });
+    });
+  });
+
+  // Enquiries are emailed to Helen by Web3Forms (web3forms.com, free plan).
+  // The key is public by design: it can only send to the address it was created for.
+  var WEB3FORMS_KEY = '';
+
+  function field(form, name) {
+    var el = form.querySelector('[name="' + name + '"]');
+    return el ? el.value.trim() : '';
+  }
+
+  function longDate(iso) {
+    var p = iso.split('-');
+    if (p.length !== 3) { return iso; }
+    var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+    return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function sendEnquiry(form) {
+    if (!WEB3FORMS_KEY) { return Promise.resolve(); }
+    var trap = form.querySelector('[name="botcheck"]');
+    if (trap && trap.checked) { return Promise.resolve(); }
+
+    var cars = Array.prototype.map.call(form.querySelectorAll('[name="cars"]:checked'), function (b) { return b.value; });
+    var contact = field(form, 'contact');
+    var date = longDate(field(form, 'wedding_date'));
+    var data = {
+      access_key: WEB3FORMS_KEY,
+      subject: 'Website enquiry: ' + date + ', ' + field(form, 'name'),
+      from_name: 'Tyson Wedding Cars website',
+      'Date': date,
+      'Collection postcode': field(form, 'pickup_postcode').toUpperCase(),
+      'Venue': field(form, 'venue'),
+      'People in the party': field(form, 'passengers'),
+      'Cars': cars.length ? cars.join(', ') : 'Not chosen',
+      'Name': field(form, 'name'),
+      'Phone or email': contact,
+      'Anything else': field(form, 'notes') || '-'
+    };
+    if (/\S+@\S+\.\S+/.test(contact)) { data.email = contact; }
+
+    return fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(data)
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      if (!j || j.success !== true) { throw new Error('not sent'); }
+    });
+  }
+
+  function showThanks(form) {
       var card = form.closest('.form-card');
       var name = (form.querySelector('[data-check="name"]').value || '').trim().split(' ')[0];
       card.innerHTML =
@@ -750,8 +809,7 @@
       card.setAttribute('role', 'status');
       card.setAttribute('tabindex', '-1');
       card.focus();
-    });
-  });
+  }
 
   // The "Which car(s)" dropdown: none, one or several. Shows the choice in its closed state.
   var carBox = document.getElementById('car-b');
