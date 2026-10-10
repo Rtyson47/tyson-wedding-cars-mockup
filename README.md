@@ -1,6 +1,3 @@
-# Tyson Wedding Cars: website mockup
+# Tyson Wedding Cars
 
-Private preview of the new site for the owners. Not live; hidden from search engines.
-
-- Mockup: index.html
-- What is left before go-live: go-live.html
+The website at https://tysonlimo.co.uk/ (GitHub Pages).
