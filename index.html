@@ -349,13 +349,16 @@
             <label for="src-a">How did you hear about us? <span class="opt">&mdash; optional</span></label>
             <select id="src-a" name="heard_from">
               <option value="">Choose one</option>
-              <option>Thornhurst Manor</option>
-              <option>Another venue</option>
+              <option>A wedding venue</option>
+              <option>A bridal fayre</option>
+              <option>Another wedding supplier</option>
+              <option>A friend or family member</option>
               <option>Google</option>
               <option>Facebook</option>
-              <option>Hitched or another wedding website</option>
-              <option>Friends or family</option>
-              <option>Saw one of the cars at a wedding</option>
+              <option>Instagram</option>
+              <option>A wedding website or directory</option>
+              <option>An advert</option>
+              <option>Saw one of the cars out and about</option>
               <option>Booked with you before</option>
               <option>Somewhere else</option>
             </select>
@@ -622,13 +625,16 @@
             <label for="src-b">How did you hear about us? <span class="opt">&mdash; optional</span></label>
             <select id="src-b" name="heard_from">
               <option value="">Choose one</option>
-              <option>Thornhurst Manor</option>
-              <option>Another venue</option>
+              <option>A wedding venue</option>
+              <option>A bridal fayre</option>
+              <option>Another wedding supplier</option>
+              <option>A friend or family member</option>
               <option>Google</option>
               <option>Facebook</option>
-              <option>Hitched or another wedding website</option>
-              <option>Friends or family</option>
-              <option>Saw one of the cars at a wedding</option>
+              <option>Instagram</option>
+              <option>A wedding website or directory</option>
+              <option>An advert</option>
+              <option>Saw one of the cars out and about</option>
               <option>Booked with you before</option>
               <option>Somewhere else</option>
             </select>
@@ -799,7 +805,16 @@
     return 'direct (typed, bookmarked or an app)';
   })();
 
-  var ASK_WHICH = { 'Another venue': 'Which venue?', 'Friends or family': 'Who should we thank?', 'Somewhere else': 'Where was it?' };
+  var ASK_WHICH = {
+    'A wedding venue': 'Which venue?',
+    'A bridal fayre': 'Which fayre?',
+    'Another wedding supplier': 'Who? (photographer, florist, planner\u2026)',
+    'A friend or family member': 'Who should we thank?',
+    'A wedding website or directory': 'Which one?',
+    'An advert': 'Where did you see it?',
+    'Saw one of the cars out and about': 'Where was it?',
+    'Somewhere else': 'Where was it?'
+  };
 
   function heardFrom(form) {
     var pick = field(form, 'heard_from');
