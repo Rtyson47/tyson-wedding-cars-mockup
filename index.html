@@ -128,13 +128,15 @@
   label{display:block;font-size:14px;font-weight:600;margin-bottom:5px;color:var(--ink);}
   .opt{font-weight:400;color:var(--ink-2);}
   .hint{font-size:13px;color:var(--ink-2);margin:-2px 0 6px;}
-  input,textarea{
+  input,textarea,select{
     width:100%;font:inherit;font-size:16px;color:var(--ink);
     background:var(--paper);border:1px solid var(--line);border-radius:var(--r);
     padding:12px 12px;min-height:48px;
   }
   textarea{min-height:84px;resize:vertical;}
-  input:focus,textarea:focus{background:#fff;border-color:var(--claret);}
+  input:focus,textarea:focus,select:focus{background:#fff;border-color:var(--claret);}
+  .source-other{margin-top:8px;}
+  .source-other[hidden]{display:none;}
   input[aria-invalid="true"],textarea[aria-invalid="true"]{border-color:var(--claret);background:#fdf6f6;}
   .err{display:none;font-size:13.5px;color:var(--claret-dk);margin-top:5px;font-weight:600;}
   .err.on{display:block;}
@@ -341,6 +343,24 @@
                      data-required data-check="contact" aria-describedby="contact-a-err">
               <p class="err" id="contact-a-err">Either a phone number or an email address, whichever suits you.</p>
             </div>
+          </div>
+
+          <div class="field">
+            <label for="src-a">How did you hear about us? <span class="opt">&mdash; optional</span></label>
+            <select id="src-a" name="heard_from">
+              <option value="">Choose one</option>
+              <option>Thornhurst Manor</option>
+              <option>Another venue</option>
+              <option>Google</option>
+              <option>Facebook</option>
+              <option>Hitched or another wedding website</option>
+              <option>Friends or family</option>
+              <option>Saw one of the cars at a wedding</option>
+              <option>Booked with you before</option>
+              <option>Somewhere else</option>
+            </select>
+            <input type="text" class="source-other" id="src-a-more" name="heard_from_more" hidden
+                   aria-label="Which one?" placeholder="Which one?">
           </div>
 
           <div class="field">
@@ -599,6 +619,24 @@
           </div>
 
           <div class="field">
+            <label for="src-b">How did you hear about us? <span class="opt">&mdash; optional</span></label>
+            <select id="src-b" name="heard_from">
+              <option value="">Choose one</option>
+              <option>Thornhurst Manor</option>
+              <option>Another venue</option>
+              <option>Google</option>
+              <option>Facebook</option>
+              <option>Hitched or another wedding website</option>
+              <option>Friends or family</option>
+              <option>Saw one of the cars at a wedding</option>
+              <option>Booked with you before</option>
+              <option>Somewhere else</option>
+            </select>
+            <input type="text" class="source-other" id="src-b-more" name="heard_from_more" hidden
+                   aria-label="Which one?" placeholder="Which one?">
+          </div>
+
+          <div class="field">
             <label for="notes-b">Anything else <span class="opt">&mdash; optional</span></label>
             <textarea id="notes-b" name="notes" rows="3"
                       placeholder="Two cars, a second trip for the bridesmaids, a car you have your eye on&hellip;"></textarea>
@@ -749,6 +787,36 @@
     return el ? el.value.trim() : '';
   }
 
+  // Where the visitor arrived from: ?ref= on links we control (Google profile, Facebook, Hitched),
+  // else the referring site, else typed or bookmarked. Read once, never stored.
+  var cameVia = (function () {
+    var ref = (location.search.match(/[?&]ref=([\w-]{1,40})/) || [])[1];
+    if (ref) { return ref; }
+    try {
+      var host = document.referrer ? new URL(document.referrer).hostname : '';
+      if (host && host !== location.hostname) { return host; }
+    } catch (e) {}
+    return 'direct (typed, bookmarked or an app)';
+  })();
+
+  var ASK_WHICH = { 'Another venue': 'Which venue?', 'Friends or family': 'Who should we thank?', 'Somewhere else': 'Where was it?' };
+
+  function heardFrom(form) {
+    var pick = field(form, 'heard_from');
+    if (!pick) { return 'Not answered'; }
+    var more = field(form, 'heard_from_more');
+    return ASK_WHICH[pick] && more ? pick + ': ' + more : pick;
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('select[name="heard_from"]'), function (sel) {
+    var more = sel.parentNode.querySelector('[name="heard_from_more"]');
+    sel.addEventListener('change', function () {
+      var ask = ASK_WHICH[sel.value];
+      more.hidden = !ask;
+      if (ask) { more.placeholder = ask; more.setAttribute('aria-label', ask); }
+    });
+  });
+
   function longDate(iso) {
     var p = iso.split('-');
     if (p.length !== 3) { return iso; }
@@ -775,6 +843,8 @@
       'Cars': cars.length ? cars.join(', ') : 'Not chosen',
       'Name': field(form, 'name'),
       'Phone or email': contact,
+      'Heard about us from': heardFrom(form),
+      'Came via link': cameVia,
       'Anything else': field(form, 'notes') || '-'
     };
     if (/\S+@\S+\.\S+/.test(contact)) { data.email = contact; }
