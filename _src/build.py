@@ -1,0 +1,191 @@
+#!/usr/bin/env python3
+"""Build every page of tysonlimo.co.uk from _src/.
+
+    python3 -I _src/build.py          # writes the pages and sitemap.xml into the repo root
+
+Each page is a body file in _src/pages/ plus its row in PAGES below. The head, masthead,
+footer and call bar are written once here, so a phone number or footer link changes in
+one place. Never edit the generated .html files by hand: the next build overwrites them.
+_src/ starts with an underscore, so GitHub Pages (Jekyll) does not publish it.
+
+Tokens a page body can use: {{form}} (the enquiry form), {{reviews}} (the three Google
+review extracts).
+"""
+import html
+import json
+import pathlib
+import re
+import sys
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+SRC = ROOT / '_src'
+SITE = 'https://tysonlimo.co.uk'
+MOBILE = '07800 787225'
+MOBILE_TEL = '+447800787225'
+
+DESCRIPTION_HOME = ('Family-run wedding car hire in Doncaster since 1985. Vintage Rolls Royces, '
+                    'classic Daimlers and Imperial Viscounts, with ribbons and a uniformed chauffeur.')
+
+# path: the URL path (None = no canonical, not in the sitemap). out: file written.
+# callbar: where "Send your date" goes (a page with {{form}} uses its own #enquiry).
+PAGES = [
+    dict(src='home.html', out='index.html', path='/', lastmod='2026-10-15',
+         title='Tyson Wedding Cars Doncaster | Vintage Rolls Royce Hire',
+         description=DESCRIPTION_HOME,
+         og_image=('/images/imperial-viscounts-pair.jpg', 1200, 649,
+                   'Two vintage-style Imperial Viscount wedding cars, one ivory and one ivory and '
+                   'silver, dressed with ribbons and cream bows, with a bride and groom standing '
+                   'between them.'),
+         jsonld='localbusiness.jsonld'),
+    dict(src='wedding-cars-doncaster.html', out='wedding-cars-doncaster/index.html',
+         path='/wedding-cars-doncaster/', lastmod='2026-10-15',
+         title='Wedding Car Hire Doncaster | Tyson Wedding Cars, since 1985',
+         description=('Wedding car hire from a Doncaster family firm since 1985: vintage Rolls Royce '
+                      'Phantoms, Daimler limousines and Imperial Viscounts, each with ribbons and a '
+                      'uniformed chauffeur.'),
+         og_image=('/images/1938-phantom-iii.jpg', 840, 560,
+                   'A vintage Rolls Royce in navy and cream, dressed with ivory ribbons, outside a '
+                   'stone building.')),
+    dict(src='privacy.html', out='privacy/index.html', path='/privacy/', lastmod='2026-10-15',
+         title='Privacy notice | Tyson Wedding Cars',
+         description='What Tyson Wedding Cars does with the details you send us, who sees them, '
+                     'how long we keep them, and your rights.',
+         callbar='/#enquiry'),
+    dict(src='404.html', out='404.html', path=None,
+         title='Page not found | Tyson Wedding Cars',
+         description='That page is not here. See the cars, or send us your date.',
+         callbar='/#enquiry', robots='noindex'),
+]
+
+# Footer links, in order. Only pages that are live belong here.
+FOOTER_LINKS = [
+    ('/', 'Home'),
+    ('/#fleet', 'The cars'),
+    ('/wedding-cars-doncaster/', 'Wedding car hire in Doncaster'),
+    ('/privacy/', 'Privacy'),
+]
+
+
+def head(p):
+    t = html.escape(p['title'], quote=True)
+    d = html.escape(p['description'], quote=True)
+    out = ['<!DOCTYPE html>', '<html lang="en-GB">', '<head>', '<meta charset="utf-8">']
+    if p['path']:
+        out.append(f'<link rel="canonical" href="{SITE}{p["path"]}">')
+    out += ['<meta name="viewport" content="width=device-width, initial-scale=1">']
+    if p.get('robots'):
+        out.append(f'<meta name="robots" content="{p["robots"]}">')
+    out += ['<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">',
+            '<link rel="apple-touch-icon" href="/apple-touch-icon.png">',
+            f'<title>{t}</title>',
+            f'<meta name="description" content="{d}">']
+    if p['path']:
+        out += ['<meta property="og:type" content="website">',
+                '<meta property="og:site_name" content="Tyson Wedding Cars">',
+                '<meta property="og:locale" content="en_GB">',
+                f'<meta property="og:url" content="{SITE}{p["path"]}">',
+                f'<meta property="og:title" content="{t}">',
+                f'<meta property="og:description" content="{d}">']
+        if p.get('og_image'):
+            src, w, h_, alt = p['og_image']
+            out += [f'<meta property="og:image" content="{SITE}{src}">',
+                    f'<meta property="og:image:width" content="{w}">',
+                    f'<meta property="og:image:height" content="{h_}">',
+                    f'<meta property="og:image:alt" content="{html.escape(alt, quote=True)}">',
+                    '<meta name="twitter:card" content="summary_large_image">']
+    if p.get('jsonld'):
+        block = (SRC / 'partials' / p['jsonld']).read_text().rstrip('\n')
+        json.loads(block)  # fail the build on broken JSON-LD
+        out += ['<script type="application/ld+json">', block, '</script>']
+    out += ['<link rel="stylesheet" href="/styles.css">', '</head>', '<body>', '']
+    return '\n'.join(out) + '\n'
+
+
+MASTHEAD = f'''{{skip}}
+
+<header class="mast">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <b>Tyson Wedding Cars</b>
+      <span>Doncaster &middot; Established 1985</span>
+    </a>
+    <div class="mast-call">
+      <a href="tel:{MOBILE_TEL}">{MOBILE}</a>
+      Speak to Helen
+    </div>
+  </div>
+</header>
+
+'''
+
+
+def footer(p):
+    cur = ' aria-current="page"'
+    links = '\n'.join(f'      <a href="{href}"{cur if href == p["path"] else ""}>{label}</a>'
+                      for href, label in FOOTER_LINKS)
+    return f'''
+<footer>
+  <div class="wrap">
+    <span>Tyson Wedding Cars, Doncaster &middot; Established 1985</span>
+    <span>Sherwood House, Green Lane, Doncaster DN5 7UY</span>
+  </div>
+  <div class="wrap">
+    <nav class="foot-nav" aria-label="Site">
+{links}
+    </nav>
+  </div>
+  <div class="wrap" style="padding-top:14px;padding-bottom:26px;">
+    <span style="font-size:13px;">Prices are quoted per booking, based on distance, the hours needed
+      and the car you choose. Tell us the date and we will come back to you.</span>
+  </div>
+</footer>
+
+<div class="callbar">
+  <a class="prim" href="tel:{MOBILE_TEL}" style="flex:1.5;">Call {MOBILE}</a>
+  <a href="{p.get('callbar', '#enquiry')}">Send your date</a>
+</div>
+
+<script src="/site.js"></script>
+
+</body>
+</html>
+'''
+
+
+def body(p):
+    s = (SRC / 'pages' / p['src']).read_text()
+    if '{{form}}' in s:
+        s = s.replace('{{form}}\n', (SRC / 'partials' / 'form.html').read_text())
+        if p.get('callbar'):
+            sys.exit(f'{p["src"]}: has a form, so its call bar should use its own #enquiry')
+    s = s.replace('{{reviews}}\n', (SRC / 'partials' / 'reviews.html').read_text())
+    left = re.findall(r'\{\{\w+\}\}', s)
+    if left:
+        sys.exit(f'{p["src"]}: unknown token(s) {left}')
+    if '<!--' in s:
+        sys.exit(f'{p["src"]}: HTML comment in a page body (the repo is public; keep notes out)')
+    return s
+
+
+def sitemap():
+    rows = ''.join(f'  <url><loc>{SITE}{p["path"]}</loc><lastmod>{p["lastmod"]}</lastmod></url>\n'
+                   for p in PAGES if p['path'])
+    return ('<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + rows + '</urlset>\n')
+
+
+def main():
+    for p in PAGES:
+        out = ROOT / p['out']
+        out.parent.mkdir(parents=True, exist_ok=True)
+        b = body(p)
+        skip = ('<a class="skip" href="#enquiry">Skip to the enquiry form</a>' if 'id="enquiry"' in b
+                else '<a class="skip" href="#top">Skip to the content</a>')
+        out.write_text(head(p) + MASTHEAD.replace('{skip}', skip) + b + footer(p))
+        print('wrote', p['out'])
+    (ROOT / 'sitemap.xml').write_text(sitemap())
+    print('wrote sitemap.xml')
+
+
+if __name__ == '__main__':
+    main()

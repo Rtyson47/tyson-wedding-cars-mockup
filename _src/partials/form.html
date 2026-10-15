@@ -1,0 +1,84 @@
+<form class="enquiry form-card" id="form-a" novalidate>
+          <h2>Is your date free?</h2>
+          <p class="sub">Six short questions. Helen reads these herself and replies personally.</p>
+
+          <p class="summary" role="alert" id="sum-a"></p>
+
+          <div class="field">
+            <label for="date-a">Date of the Wedding or Special Occasion</label>
+            <p class="hint" id="date-a-hint">It is the first thing we check, so it is the first thing we ask.</p>
+            <input type="date" id="date-a" name="wedding_date" data-required
+                   aria-describedby="date-a-hint date-a-err">
+            <p class="err" id="date-a-err">We need the date before we can tell you anything useful.</p>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label for="pc-a">Collection post code?</label>
+              <input type="text" id="pc-a" name="pickup_postcode" autocomplete="postal-code"
+                     autocapitalize="characters" placeholder="DN5 7UY" data-required
+                     aria-describedby="pc-a-err">
+              <p class="err" id="pc-a-err">Where should the car collect you from?</p>
+            </div>
+            <div class="field">
+              <label for="venue-a">Venue / Church / Register office</label>
+              <input type="text" id="venue-a" name="venue" data-required
+                     aria-describedby="venue-a-err">
+              <p class="err" id="venue-a-err">Please tell us where you are heading.</p>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="pax-a">How many people in the party?</label>
+            <input type="number" id="pax-a" name="passengers" min="1" step="1" inputmode="numeric"
+                   data-required aria-describedby="pax-a-err">
+            <p class="err" id="pax-a-err">A rough number is fine, we can change it later.</p>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label for="name-a">Your name</label>
+              <input type="text" id="name-a" name="name" autocomplete="name"
+                     data-required data-check="name" aria-describedby="name-a-err">
+              <p class="err" id="name-a-err">Who are we replying to?</p>
+            </div>
+            <div class="field">
+              <label for="contact-a">Phone or email</label>
+              <input type="text" id="contact-a" name="contact" autocomplete="tel"
+                     data-required data-check="contact" aria-describedby="contact-a-err">
+              <p class="err" id="contact-a-err">Either a phone number or an email address, whichever suits you.</p>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="src-a">How did you hear about us? <span class="opt">&mdash; optional</span></label>
+            <select id="src-a" name="heard_from">
+              <option value="">Choose one</option>
+              <option>A wedding venue</option>
+              <option>A bridal fayre</option>
+              <option>Another wedding supplier</option>
+              <option>A friend or family member</option>
+              <option>Google</option>
+              <option>Facebook</option>
+              <option>Instagram</option>
+              <option>A wedding website or directory</option>
+              <option>An advert</option>
+              <option>Saw one of the cars out and about</option>
+              <option>Booked with you before</option>
+              <option>Somewhere else</option>
+            </select>
+            <input type="text" class="source-other" id="src-a-more" name="heard_from_more" hidden
+                   aria-label="Which one?" placeholder="Which one?">
+          </div>
+
+          <div class="field">
+            <label for="notes-a">Anything else <span class="opt">&mdash; optional</span></label>
+            <textarea id="notes-a" name="notes" rows="3"
+                      placeholder="Two cars, a second trip for the bridesmaids, a car you have your eye on&hellip;"></textarea>
+          </div>
+
+          <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none">
+          <button type="submit" class="btn">Send my date to Helen</button>
+          <p class="form-foot">Prefer to talk? <a href="tel:+447800787225">07800 787225</a>.</p>
+          <p class="form-foot" style="margin-top:0;">What we do with your details: <a href="/privacy/">privacy notice</a>.</p>
+        </form>

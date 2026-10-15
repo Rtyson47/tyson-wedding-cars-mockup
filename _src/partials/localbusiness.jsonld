@@ -1,0 +1,32 @@
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "Tyson Wedding Cars",
+  "description": "Family-run wedding car hire in Doncaster since 1985. Vintage Rolls Royces, classic Daimlers and Imperial Viscounts, with ribbons and a uniformed chauffeur.",
+  "url": "https://tysonlimo.co.uk/",
+  "image": "https://tysonlimo.co.uk/images/imperial-viscounts-pair.jpg",
+  "logo": "https://tysonlimo.co.uk/apple-touch-icon.png",
+  "telephone": "+441302787878",
+  "email": "rtyson56@btinternet.com",
+  "foundingDate": "1985",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Sherwood House, Green Lane",
+    "addressLocality": "Doncaster",
+    "postalCode": "DN5 7UY",
+    "addressCountry": "GB"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 53.5500726,
+    "longitude": -1.1960876
+  },
+  "areaServed": {
+    "@type": "City",
+    "name": "Doncaster"
+  },
+  "sameAs": [
+    "https://www.facebook.com/TysonLimousines",
+    "https://maps.google.com/?cid=6892898293343609574"
+  ]
+}
