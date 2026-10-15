@@ -59,6 +59,13 @@ PAGES = [
          callbar='/#enquiry', robots='noindex'),
 ]
 
+# One page per car (or pair of cars), from _src/cars.json.
+CARS = json.loads((SRC / 'cars.json').read_text())
+for c in CARS:
+    PAGES.append(dict(car=c, src=f'cars.json:{c["slug"]}', out=f'cars/{c["slug"]}/index.html',
+                      path=f'/cars/{c["slug"]}/', lastmod='2026-10-15', title=c['title'],
+                      description=c['description'], og_image=('/images/' + c['photos'][0][0], *c['photos'][0][1:4])))
+
 # Footer links, in order. Only pages that are live belong here.
 FOOTER_LINKS = [
     ('/', 'Home'),
@@ -156,10 +163,95 @@ def footer(p):
 '''
 
 
+def img(photo, extra=''):
+    src, w, h_, alt = photo[:4]
+    return (f'<img{extra} src="/images/{src}" width="{w}" height="{h_}"\n'
+            f'             alt="{html.escape(alt, quote=True)}">')
+
+
+def car_body(c):
+    specs = '\n'.join(f'          <tr><th scope="row">{k}</th><td>{v}</td></tr>' for k, v in c['specs'])
+    first, rest = c['photos'][0], c['photos'][1:]
+    gallery = '\n'.join(f'''        <figure>
+          {img(ph, ' loading="lazy"')}
+          <figcaption>{ph[4]}</figcaption>
+        </figure>''' for ph in rest)
+    others = '\n'.join(f'        <li><a href="/cars/{o["slug"]}/"><b>{o["name"]}</b></a>'
+                       f'<span>{o["kicker"]}</span></li>' for o in CARS if o is not c)
+    return f'''<main id="top">
+
+  <div class="hero">
+    <div class="wrap hero-grid">
+
+      <div class="hero-copy">
+        <p class="crumbs"><a href="/">Home</a> &rsaquo; <a href="/#fleet">The cars</a> &rsaquo; {c["name"]}</p>
+        <p class="eyebrow">{c["kicker"]}</p>
+        <h1>{c["h1"]}</h1>
+        <p class="lede">{c["lede"]}</p>
+        <div class="prose"><table class="specs">
+{specs}
+        </table></div>
+      </div>
+
+      <div class="hero-form-wrap" id="enquiry">
+{{{{form}}}}
+      </div>
+
+      <figure class="hero-photo">
+        {img(first, ' fetchpriority="high"')}
+        <figcaption>{first[4]}</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <section class="band">
+    <div class="wrap">
+      <div class="gallery">
+{gallery}
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap cols">
+      <div>
+        <div class="rule"></div>
+        <h2 style="font-size:clamp(25px,4.4vw,34px);line-height:1.2;margin-bottom:18px;">Every car comes the same way</h2>
+        <ul class="ticks">
+          <li><b>Dressed in coordinating ribbons</b> to match your colour scheme.</li>
+          <li><b>A professional, experienced uniformed chauffeur</b>.</li>
+          <li><b>Arrival at the collection time</b> we arrange with you.</li>
+          <li><b>We work closely with your photographer on the day</b>.</li>
+        </ul>
+        <p>You are welcome to come and view the cars before you decide. Ring Helen on
+          <a href="tel:{MOBILE_TEL}">{MOBILE}</a>. More on how booking works:
+          <a href="/wedding-cars-doncaster/">wedding car hire in Doncaster</a>.</p>
+      </div>
+      <div>
+        <div class="rule"></div>
+        <h2 style="font-size:clamp(25px,4.4vw,34px);line-height:1.2;margin-bottom:18px;">The rest of the fleet</h2>
+        <ul class="fleet-list">
+{others}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+'''
+
+
 def body(p):
-    s = (SRC / 'pages' / p['src']).read_text()
+    c = p.get('car')
+    s = car_body(c) if c else (SRC / 'pages' / p['src']).read_text()
     if '{{form}}' in s:
-        s = s.replace('{{form}}\n', (SRC / 'partials' / 'form.html').read_text())
+        form = (SRC / 'partials' / 'form.html').read_text()
+        if c:
+            trap = '          <input type="checkbox" name="botcheck"'
+            assert form.count(trap) == 1
+            form = form.replace(trap, '          <input type="hidden" name="cars" value="'
+                                + html.escape(c['form_value'], quote=True) + '">\n' + trap)
+        s = s.replace('{{form}}\n', form)
         if p.get('callbar'):
             sys.exit(f'{p["src"]}: has a form, so its call bar should use its own #enquiry')
     s = s.replace('{{reviews}}\n', (SRC / 'partials' / 'reviews.html').read_text())
@@ -207,6 +299,23 @@ def main():
     BUILT.write_text(json.dumps(new, indent=1, sort_keys=True) + '\n')
     (ROOT / 'sitemap.xml').write_text(sitemap())
     print('wrote sitemap.xml')
+    check_links()
+
+
+def check_links():
+    """Every site-relative href and src on every page must resolve to a file in the repo."""
+    bad = []
+    for p in PAGES:
+        page = (ROOT / p['out']).read_text()
+        for ref in re.findall(r'(?:href|src)="(/[^"#?]*)', page):
+            target = ROOT / ref.lstrip('/')
+            if ref.endswith('/'):
+                target = target / 'index.html'
+            if not target.exists():
+                bad.append(f'{p["out"]}: {ref}')
+    if bad:
+        sys.exit('broken links:\n  ' + '\n  '.join(bad))
+    print('links ok')
 
 
 if __name__ == '__main__':

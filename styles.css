@@ -135,10 +135,11 @@ details.multi .mopt:hover{background:var(--paper);}
 details.multi .mopt input{width:20px;height:20px;min-height:0;padding:0;flex:none;accent-color:var(--claret);}
 .car-img .alt{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s ease;}
 .car[data-car]{cursor:pointer;}
-.car[data-car]:hover .alt,.car[data-car]:focus-visible .alt{opacity:1;}
-.car[data-car]:focus-visible{outline:3px solid var(--claret);outline-offset:3px;}
-.car .ask{display:inline-block;margin-top:12px;font-size:14px;font-weight:600;color:var(--claret);}
-.car[data-car]:hover .ask,.car[data-car]:focus-visible .ask{text-decoration:underline;}
+.car[data-car]:hover .alt,.car[data-car]:focus-within .alt{opacity:1;}
+.car-links{display:flex;flex-wrap:wrap;align-items:center;gap:4px 18px;margin-top:6px;}
+.car .ask{display:inline-block;background:none;border:0;padding:8px 0;font:inherit;font-size:14px;font-weight:600;color:var(--claret);cursor:pointer;text-align:left;}
+.car[data-car]:hover .ask,.car .ask:focus-visible{text-decoration:underline;}
+.car .more{display:inline-block;padding:8px 0;font-size:14px;color:var(--ink-2);}
 @media(prefers-reduced-motion:reduce){ .car-img .alt{transition:none;} }
 .car-img-2{display:grid;grid-template-columns:1fr;gap:2px;}
 @media(min-width:520px){ .car-img-2{grid-template-columns:1fr 1fr;} }
@@ -241,3 +242,12 @@ a.brand:hover b{color:var(--claret);}
 .cta-row .btn{width:auto;}
 .btn.ghost{background:transparent;color:var(--claret);}
 .btn.ghost:hover{background:var(--paper-2);}
+
+/* ---------- car pages ---------- */
+.specs{margin:22px 0 0;}
+.specs th{width:8.5em;color:var(--ink);}
+.specs td{color:var(--ink-2);}
+.gallery{display:grid;gap:22px;}
+@media(min-width:700px){ .gallery{grid-template-columns:1fr 1fr;} }
+.gallery figure{margin:0;}
+.gallery img{width:100%;border-radius:var(--r);}

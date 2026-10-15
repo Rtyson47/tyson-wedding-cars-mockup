@@ -134,7 +134,7 @@
     var trap = form.querySelector('[name="botcheck"]');
     if (trap && trap.checked) { return Promise.resolve(); }
 
-    var cars = Array.prototype.map.call(form.querySelectorAll('[name="cars"]:checked'), function (b) { return b.value; });
+    var cars = Array.prototype.map.call(form.querySelectorAll('[name="cars"]:checked, input[type="hidden"][name="cars"]'), function (b) { return b.value; });
     var contact = field(form, 'contact');
     var date = longDate(field(form, 'wedding_date'));
     var data = {
@@ -206,9 +206,10 @@
     setTimeout(function () { if (dateField) { dateField.focus({ preventScroll: true }); } }, reduce ? 0 : 500);
   }
   Array.prototype.forEach.call(document.querySelectorAll('.car[data-car]'), function (card) {
-    card.addEventListener('click', function () { chooseCar(card); });
-    card.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); chooseCar(card); }
+    // The whole card asks about the car, except its "Photos and details" link.
+    card.addEventListener('click', function (e) {
+      if (e.target.closest('a')) { return; }
+      chooseCar(card);
     });
   });
 
