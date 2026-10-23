@@ -213,6 +213,32 @@
     });
   });
 
+  // Swipe between a car's two photos (touch and narrow screens): one dot per photo, tap a dot to jump.
+  Array.prototype.forEach.call(document.querySelectorAll('.car-img:not(.car-img-2)'), function (box) {
+    var shots = box.querySelectorAll('img');
+    if (shots.length < 2) { return; }
+    var dots = document.createElement('div');
+    dots.className = 'dots';
+    var buttons = Array.prototype.map.call(shots, function (img, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-label', 'Photo ' + (i + 1) + ' of ' + shots.length);
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        box.scrollTo({ left: i * box.clientWidth, behavior: reduce ? 'auto' : 'smooth' });
+      });
+      dots.appendChild(b);
+      return b;
+    });
+    function mark() {
+      var at = Math.round(box.scrollLeft / Math.max(box.clientWidth, 1));
+      buttons.forEach(function (b, i) { b.setAttribute('aria-current', i === at ? 'true' : 'false'); });
+    }
+    box.addEventListener('scroll', mark, { passive: true });
+    box.parentNode.insertBefore(dots, box.nextSibling);
+    mark();
+  });
+
   function escapeHtml(s) {
     return s.replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
