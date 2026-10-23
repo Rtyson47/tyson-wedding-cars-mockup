@@ -249,5 +249,10 @@ a.brand:hover b{color:var(--claret);}
 .specs td{color:var(--ink-2);}
 .gallery{display:grid;gap:22px;}
 @media(min-width:700px){ .gallery{grid-template-columns:1fr 1fr;} }
+/* Car pages: photo above the form on phones (source order); beside it on desktop, under the copy with no gap. */
+@media(min-width:900px){
+  .car-hero{grid-template-areas:"copy form" "photo form" "photo2 form";grid-template-rows:auto auto 1fr;}
+  .hero-photo-2{grid-area:photo2;}
+}
 .gallery figure{margin:0;}
 .gallery img{width:100%;border-radius:var(--r);}

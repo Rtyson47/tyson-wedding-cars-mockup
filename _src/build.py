@@ -172,16 +172,34 @@ def img(photo, extra=''):
 def car_body(c):
     specs = '\n'.join(f'          <tr><th scope="row">{k}</th><td>{v}</td></tr>' for k, v in c['specs'])
     first, rest = c['photos'][0], c['photos'][1:]
+    # A lone second photo sits under the first, beside the form, rather than half-filling a strip.
+    second = ''
+    if len(rest) == 1:
+        second = f'''
+      <figure class="hero-photo hero-photo-2">
+        {img(rest[0], ' loading="lazy"')}
+        <figcaption>{rest[0][4]}</figcaption>
+      </figure>'''
+        rest = []
     gallery = '\n'.join(f'''        <figure>
           {img(ph, ' loading="lazy"')}
           <figcaption>{ph[4]}</figcaption>
         </figure>''' for ph in rest)
+    band = f'''
+  <section class="band">
+    <div class="wrap">
+      <div class="gallery">
+{gallery}
+      </div>
+    </div>
+  </section>
+''' if rest else ''
     others = '\n'.join(f'        <li><a href="/cars/{o["slug"]}/"><b>{o["name"]}</b></a>'
                        f'<span>{o["kicker"]}</span></li>' for o in CARS if o is not c)
     return f'''<main id="top">
 
   <div class="hero">
-    <div class="wrap hero-grid">
+    <div class="wrap hero-grid car-hero">
 
       <div class="hero-copy">
         <p class="crumbs"><a href="/">Home</a> &rsaquo; <a href="/#fleet">The cars</a> &rsaquo; {c["name"]}</p>
@@ -193,25 +211,18 @@ def car_body(c):
         </table></div>
       </div>
 
-      <div class="hero-form-wrap" id="enquiry">
-{{{{form}}}}
-      </div>
-
       <figure class="hero-photo">
         {img(first, ' fetchpriority="high"')}
         <figcaption>{first[4]}</figcaption>
       </figure>
+
+      <div class="hero-form-wrap" id="enquiry">
+{{{{form}}}}
+      </div>
+{second}
     </div>
   </div>
-
-  <section class="band">
-    <div class="wrap">
-      <div class="gallery">
-{gallery}
-      </div>
-    </div>
-  </section>
-
+{band}
   <section>
     <div class="wrap cols">
       <div>
