@@ -48,7 +48,7 @@ PAGES = [
          og_image=('/images/1938-phantom-iii.jpg', 840, 560,
                    'A vintage Rolls Royce in navy and cream, dressed with ivory ribbons, outside a '
                    'stone building.')),
-    dict(src='privacy.html', out='privacy/index.html', path='/privacy/', lastmod='2026-10-15',
+    dict(src='privacy.html', out='privacy/index.html', path='/privacy/', lastmod='2026-11-20',
          title='Privacy notice | Tyson Wedding Cars',
          description='What Tyson Wedding Cars does with the details you send us, who sees them, '
                      'how long we keep them, and your rights.',
@@ -121,7 +121,7 @@ MASTHEAD = f'''{{skip}}
       <span>Doncaster &middot; Established 1985</span>
     </a>
     <div class="mast-call">
-      <a href="tel:{MOBILE_TEL}">{MOBILE}</a>
+      <a data-goatcounter-click="call-top" href="tel:{MOBILE_TEL}">{MOBILE}</a>
       Speak to Helen
     </div>
   </div>
@@ -157,11 +157,13 @@ def footer(p):
 </footer>
 
 <div class="callbar">
-  <a class="prim" href="tel:{MOBILE_TEL}" style="flex:1.5;">Call {MOBILE}</a>
+  <a class="prim" href="tel:{MOBILE_TEL}" data-goatcounter-click="call-bar" style="flex:1.5;">Call {MOBILE}</a>
   <a href="{p.get('callbar', '#enquiry')}">Send your date</a>
 </div>
 
 <script src="/site.js"></script>
+<script data-goatcounter="https://tysonlimo.goatcounter.com/count"
+        async src="https://gc.zgo.at/count.js"></script>
 
 </body>
 </html>
@@ -240,7 +242,7 @@ def car_body(c):
           <li><b>We work closely with your photographer on the day</b>.</li>
         </ul>
         <p>You are welcome to come and view the cars before you decide. Ring Helen on
-          <a href="tel:{MOBILE_TEL}">{MOBILE}</a>. More on how booking works:
+          <a data-goatcounter-click="call-car-page" href="tel:{MOBILE_TEL}">{MOBILE}</a>. More on how booking works:
           <a href="/wedding-cars-doncaster/">wedding car hire in Doncaster</a>.</p>
       </div>
       <div>

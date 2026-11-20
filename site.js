@@ -63,6 +63,10 @@
       button.textContent = 'Sending…';
 
       sendEnquiry(form).then(function () {
+        // Count the enquiry once Web3Forms has accepted it (GoatCounter, cookieless; see /privacy/).
+        if (window.goatcounter && window.goatcounter.count) {
+          window.goatcounter.count({ path: 'form-sent', title: 'Enquiry sent', event: true });
+        }
         showThanks(form);
       }, function () {
         delete form.dataset.sending;
